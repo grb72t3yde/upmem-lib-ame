@@ -108,6 +108,10 @@ __API_SYMBOL__ struct dpu_rank_handler hw_dpu_rank_handler = {
     .get_nr_dpu_ranks = hw_get_nr_dpu_ranks,
 };
 
+__API_SYMBOL__ struct dpu_ame_handler hw_dpu_ame_handler = {
+    .check_need_reclamation = dpu_sysfs_ame_check,
+};
+
 typedef struct _hw_dpu_rank_context_t {
     /* Hybrid mode: Address of control interfaces when memory mapped
      * Perf mode:   Base region address, mappings deal with offset to target control interfaces

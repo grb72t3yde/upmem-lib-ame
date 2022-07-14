@@ -50,6 +50,10 @@ typedef struct dpu_rank_handler {
     dpu_rank_status_e (*get_nr_dpu_ranks)(uint32_t *nr_ranks);
 } * dpu_rank_handler_t;
 
+typedef struct dpu_ame_handler {
+    int (*check_need_reclamation)(int nr_req_ranks);
+} * dpu_ame_handler_t;
+
 #define RANK_FEATURE(rank, feature) ((rank)->handler_context->handler->features.feature)
 
 /* We need to keep a global handler for further rank allocation: the first 'allocates' it, the others get it. */

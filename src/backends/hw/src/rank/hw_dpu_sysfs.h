@@ -29,6 +29,9 @@ uint8_t
 dpu_sysfs_get_nb_physical_ranks();
 
 int
+dpu_sysfs_ame_check(int nr_req_ranks);
+
+int
 dpu_sysfs_get_available_rank(const char *rank_path, struct dpu_rank_fs *rank_fs);
 void
 dpu_sysfs_free_rank(struct dpu_rank_fs *rank_fs);
@@ -97,5 +100,6 @@ dpu_sysfs_get_numa_node(struct dpu_rank_fs *rank_fs);
 
 const char *
 dpu_sysfs_get_byte_order(struct dpu_rank_fs *rank_fs);
+
 
 #endif /* HW_DPU_SYSFS_H */
