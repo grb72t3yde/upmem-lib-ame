@@ -63,10 +63,20 @@ typedef struct _dpu_rank_handler_context_t {
     void *library;
 } * dpu_rank_handler_context_t;
 
+typedef struct _dpu_ame_handler_context_t {
+    dpu_ame_handler_t handler;
+    int handler_refcount;
+    void *library;
+} * dpu_ame_handler_context_t;
+
 bool
 dpu_rank_handler_instantiate(dpu_type_t type, dpu_rank_handler_context_t *ret_handler_context, bool verbose);
+bool
+dpu_ame_handler_instantiate(dpu_type_t type, dpu_ame_handler_context_t *ret_handler_context, bool verbose);
 void
 dpu_rank_handler_release(dpu_rank_handler_context_t handler_context);
+void
+dpu_ame_handler_release(dpu_ame_handler_context_t handler_context);
 
 bool
 dpu_rank_handler_get_rank(struct dpu_rank_t *rank, dpu_rank_handler_context_t handler_context, dpu_properties_t properties);

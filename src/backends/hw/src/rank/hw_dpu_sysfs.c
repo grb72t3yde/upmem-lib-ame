@@ -286,7 +286,8 @@ dpu_sysfs_ame_check(int nr_req_ranks)
     struct dpu_rank_udev udev;
     struct udev_list_entry *dev_dpu_ame_list_entry;
     struct dpu_ame_allocation_context allocation_context;
-    int dpu_ame_fd, ret;
+    int dpu_ame_fd, ret = 0;
+    extern int errno;
 
     init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
 
@@ -300,11 +301,19 @@ dpu_sysfs_ame_check(int nr_req_ranks)
         dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
 
         dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
+        if (dpu_ame_fd < 0)
+            goto err;
 
-        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_CHECK_NEED_RECLAMATION, allocation_context);
+        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_CHECK_NEED_RECLAMATION, &allocation_context);
+
+        close(dpu_ame_fd);
+        if (ret < 0)
+            goto err;
     }
 end:
-    return ret;
+    return 0;
+err:
+    return -errno;
 }
 
 // TODO allocation must be smarter than just allocating rank "one by one":

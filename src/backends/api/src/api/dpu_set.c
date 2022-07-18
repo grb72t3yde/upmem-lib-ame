@@ -372,6 +372,20 @@ dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_se
     dpu_error_t status = DPU_OK;
     struct dpu_rank_t **ranks;
     uint32_t each_rank;
+    dpu_ame_handler_context_t handler_context;
+    int ret;
+
+    /* Check if we need to trigger AME reclamation */
+    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+        if (handler_context->handler && handler_context->handler->check_need_reclamation)
+            ret = handler_context->handler->check_need_reclamation(nr_ranks);
+
+        if (ret) {
+            status = DPU_ERR_ALLOCATION;
+            goto end;
+        }
+    }
+    dpu_ame_handler_release(handler_context);
 
     if (nr_ranks == DPU_ALLOCATE_ALL) {
         return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
