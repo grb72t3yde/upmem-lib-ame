@@ -29,6 +29,9 @@ uint8_t
 dpu_sysfs_get_nb_physical_ranks();
 
 int
+dpu_sysfs_ame_trigger_async_reclamation(void);
+
+int
 dpu_sysfs_ame_check(int nr_req_ranks);
 
 int

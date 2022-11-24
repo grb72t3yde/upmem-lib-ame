@@ -365,6 +365,28 @@ error_free_ranks:
 }
 
 __API_SYMBOL__ dpu_error_t
+dpu_ame_trigger_async_reclamation(void)
+{
+    dpu_error_t status = DPU_OK;
+    dpu_ame_handler_context_t handler_context;
+    int ret;
+
+    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+        if (handler_context->handler && handler_context->handler->check_need_reclamation)
+            ret = handler_context->handler->trigger_async_reclamation();
+
+        if (ret) {
+            status = DPU_ERR_ALLOCATION;
+            goto end;
+        }
+    }
+    dpu_ame_handler_release(handler_context);
+
+end:
+    return status;
+}
+
+__API_SYMBOL__ dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
 {
     LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);
