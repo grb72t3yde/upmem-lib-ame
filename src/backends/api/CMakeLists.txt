@@ -5,6 +5,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 cmake_policy(SET CMP0048 NEW)
+set(JAVA_AWT_INCLUDE_PATH "$ENV{JAVA_HOME}/include")
 
 find_package(JNI REQUIRED)
 find_package(Threads REQUIRED)

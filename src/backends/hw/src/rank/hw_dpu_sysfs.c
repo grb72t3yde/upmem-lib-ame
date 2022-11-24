@@ -17,9 +17,11 @@
 #include <string.h>
 #include <inttypes.h>
 #include <dpu_description.h>
+#include <dpu_ame.h>
 
 /* Header shared with driver */
 #include "dpu_rank_ioctl.h"
+#include "dpu_ame_ioctl.h"
 #include "dpu_region_address_translation.h"
 #include "dpu_region_constants.h"
 #include "hw_dpu_sysfs.h"
@@ -276,6 +278,76 @@ dpu_sysfs_get_nb_physical_ranks()
 
 end:
     return nb_ranks;
+}
+
+int
+dpu_sysfs_ame_trigger_async_reclamation(void)
+{
+    struct dpu_rank_udev udev;
+    struct udev_list_entry *dev_dpu_ame_list_entry;
+    int dpu_ame_fd, ret = 0;
+    extern int errno;
+
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+
+    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    {
+        const char *path_dpu_ame, *dev_dpu_ame_path;
+
+        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
+        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+
+        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
+        if (dpu_ame_fd < 0)
+            goto err;
+
+        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_TRIGGER_ASYNC_RECLAMATION, 0);
+
+        close(dpu_ame_fd);
+        if (ret < 0)
+            goto err;
+    }
+end:
+    return 0;
+err:
+    return -errno;
+}
+
+int
+dpu_sysfs_ame_check(int nr_req_ranks)
+{
+    struct dpu_rank_udev udev;
+    struct udev_list_entry *dev_dpu_ame_list_entry;
+    struct dpu_ame_allocation_context allocation_context;
+    int dpu_ame_fd, ret = 0;
+    extern int errno;
+
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+
+    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    {
+        const char *path_dpu_ame, *dev_dpu_ame_path;
+        allocation_context.nr_req_ranks = nr_req_ranks;
+
+        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
+        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+
+        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
+        if (dpu_ame_fd < 0)
+            goto err;
+
+        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_CHECK_NEED_RECLAMATION, &allocation_context);
+
+        close(dpu_ame_fd);
+        if (ret < 0)
+            goto err;
+    }
+end:
+    return 0;
+err:
+    return -errno;
 }
 
 // TODO allocation must be smarter than just allocating rank "one by one":
