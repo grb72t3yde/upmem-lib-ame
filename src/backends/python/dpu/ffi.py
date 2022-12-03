@@ -1591,6 +1591,11 @@ if _libs["libdpu.so"].has("dpu_alloc_ranks", "cdecl"):
     dpu_alloc_ranks.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
     dpu_alloc_ranks.restype = dpu_error_t
 
+if _libs["libdpu.so"].has("dpu_ame_union_two_dpu_sets", "cdecl"):
+    dpu_alloc_ranks = _libs["libdpu.so"].get("dpu_ame_union_two_dpu_sets", "cdecl")
+    dpu_alloc_ranks.argtypes = [POINTER(struct_dpu_set_t), POINTER(struct_dpu_set_t)]
+    dpu_alloc_ranks.restype = dpu_error_t
+
 # dpu.h: 169
 if _libs["libdpu.so"].has("dpu_free", "cdecl"):
     dpu_free = _libs["libdpu.so"].get("dpu_free", "cdecl")

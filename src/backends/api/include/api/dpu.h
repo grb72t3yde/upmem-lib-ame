@@ -157,6 +157,9 @@ dpu_alloc(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
 dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set);
 
+dpu_error_t
+dpu_ame_union_two_dpu_sets(struct dpu_set_t *set1, struct dpu_set_t *set2);
+
 /**
  * @brief Free all the DPUs of a DPU set.
  *

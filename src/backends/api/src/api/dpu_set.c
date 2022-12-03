@@ -387,6 +387,52 @@ end:
 }
 
 __API_SYMBOL__ dpu_error_t
+dpu_ame_union_two_dpu_sets(struct dpu_set_t *set1, struct dpu_set_t *set2)
+{
+    dpu_error_t status = DPU_OK;
+
+    /* unregister the old sets set1 and set2 from the set allocator */
+    if ((status = set_allocator_unregister(set1)) != DPU_OK) {
+        return status;
+    }
+
+    if ((status = set_allocator_unregister(set2)) != DPU_OK) {
+        return status;
+    }
+
+    /* concat the rank lists of set1 and set2 */
+    struct dpu_rank_t **current_ranks_tmp;
+    if ((current_ranks_tmp = realloc(set1->list.ranks, (set1->list.nr_ranks + set2->list.nr_ranks) * sizeof(*current_ranks_tmp))) == NULL) {
+        status = DPU_ERR_SYSTEM;
+        goto err;
+    }
+    set1->list.ranks = current_ranks_tmp;
+
+    struct dpu_rank_t **set2_start_rank = &set1->list.ranks[set1->list.nr_ranks];
+    for (uint32_t i = 0; i < set2->list.nr_ranks; ++i) {
+        set2_start_rank[i] = set2->list.ranks[i];
+    }
+    /* Add up to the total rank number */
+    set1->list.nr_ranks = set1->list.nr_ranks + set2->list.nr_ranks;
+
+    for (uint32_t i = 0; i < set1->list.nr_ranks; ++i) {
+        printf("rank id is %u\n", set1->list.ranks[i]->rank_id);
+    }
+
+    /* register the new set to the set allocator */
+    if ((status = set_allocator_register(set1)) != DPU_OK) {
+        return status;
+    }
+
+    goto end;
+err:
+    set_allocator_register(set1);
+    set_allocator_register(set2);
+end:
+    return status;
+}
+
+__API_SYMBOL__ dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
 {
     LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);
