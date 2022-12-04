@@ -1574,8 +1574,8 @@ DPU_CALLBACK_SINGLE_CALL = (1 << 2)  # dpu.h: 102
 
 dpu_callback_flags_t = enum__dpu_callback_flags_t  # dpu.h: 102
 
-if _libs["libdpu.so"].has("dpu_ame_trigger_async_reclamation", "cdecl"):
-    dpu_alloc = _libs["libdpu.so"].get("dpu_ame_trigger_async_reclamation", "cdecl")
+if _libs["libdpu.so"].has("dpu_ame_trigger_direct_reclamation", "cdecl"):
+    dpu_alloc = _libs["libdpu.so"].get("dpu_ame_trigger_direct_reclamation", "cdecl")
     dpu_alloc.argtypes = [c_uint32]
     dpu_alloc.restype = dpu_error_t
 

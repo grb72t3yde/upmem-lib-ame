@@ -365,7 +365,7 @@ error_free_ranks:
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_ame_trigger_async_reclamation(void)
+dpu_ame_trigger_direct_reclamation(void)
 {
     dpu_error_t status = DPU_OK;
     dpu_ame_handler_context_t handler_context;
@@ -373,7 +373,7 @@ dpu_ame_trigger_async_reclamation(void)
 
     if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
         if (handler_context->handler && handler_context->handler->check_need_reclamation)
-            ret = handler_context->handler->trigger_async_reclamation();
+            ret = handler_context->handler->trigger_direct_reclamation();
 
         if (ret) {
             status = DPU_ERR_ALLOCATION;

@@ -51,8 +51,8 @@ typedef struct dpu_rank_handler {
 } * dpu_rank_handler_t;
 
 typedef struct dpu_ame_handler {
-    int (*trigger_async_reclamation)(void);
     int (*check_need_reclamation)(int nr_req_ranks);
+    int (*trigger_direct_reclamation)(void);
 } * dpu_ame_handler_t;
 
 #define RANK_FEATURE(rank, feature) ((rank)->handler_context->handler->features.feature)

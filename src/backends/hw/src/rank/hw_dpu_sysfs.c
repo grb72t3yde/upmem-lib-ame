@@ -281,7 +281,7 @@ end:
 }
 
 int
-dpu_sysfs_ame_trigger_async_reclamation(void)
+dpu_sysfs_ame_trigger_direct_reclamation(void)
 {
     struct dpu_rank_udev udev;
     struct udev_list_entry *dev_dpu_ame_list_entry;
@@ -302,7 +302,7 @@ dpu_sysfs_ame_trigger_async_reclamation(void)
         if (dpu_ame_fd < 0)
             goto err;
 
-        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_TRIGGER_ASYNC_RECLAMATION, 0);
+        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_TRIGGER_DIRECT_RECLAMATION, 0);
 
         close(dpu_ame_fd);
         if (ret < 0)
@@ -345,7 +345,7 @@ dpu_sysfs_ame_check(int nr_req_ranks)
             goto err;
     }
 end:
-    return 0;
+    return allocation_context.nr_alloc_ranks;
 err:
     return -errno;
 }

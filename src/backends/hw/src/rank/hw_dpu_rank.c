@@ -109,7 +109,7 @@ __API_SYMBOL__ struct dpu_rank_handler hw_dpu_rank_handler = {
 };
 
 __API_SYMBOL__ struct dpu_ame_handler hw_dpu_ame_handler = {
-    .trigger_async_reclamation = dpu_sysfs_ame_trigger_async_reclamation,
+    .trigger_direct_reclamation = dpu_sysfs_ame_trigger_direct_reclamation,
     .check_need_reclamation = dpu_sysfs_ame_check,
 };
 
