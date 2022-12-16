@@ -365,15 +365,75 @@ error_free_ranks:
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_ame_trigger_direct_reclamation(void)
+dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
 {
+    LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);
+
     dpu_error_t status = DPU_OK;
+    struct dpu_rank_t **ranks;
+    uint32_t each_rank;
+
+    if (nr_ranks == DPU_ALLOCATE_ALL) {
+        return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
+    }
+
+    if (nr_ranks == 0) {
+        LOG_FN(WARNING, "cannot allocate 0 DPUs");
+        status = DPU_ERR_ALLOCATION;
+        goto end;
+    }
+
+    if ((ranks = calloc(nr_ranks, sizeof(*ranks))) == NULL) {
+        status = DPU_ERR_SYSTEM;
+        goto end;
+    }
+
+    for (each_rank = 0; each_rank < nr_ranks; ++each_rank) {
+        if ((status = dpu_get_rank_of_type(profile, &ranks[each_rank])) != DPU_OK) {
+            goto free_ranks;
+        }
+
+        if (!ranks[each_rank]->description->configuration.disable_reset_on_alloc) {
+            if ((status = dpu_reset_rank(ranks[each_rank])) != DPU_OK) {
+                goto free_ranks;
+            }
+        }
+    }
+
+    if ((status = init_dpu_set(ranks, nr_ranks, dpu_set)) != DPU_OK) {
+        goto free_ranks;
+    }
+
+    return DPU_OK;
+
+free_ranks:
+    for (unsigned int each_allocated_rank = 0; each_allocated_rank < each_rank; ++each_allocated_rank) {
+        dpu_free_rank(ranks[each_allocated_rank]);
+    }
+    free(ranks);
+
+end:
+    return status;
+}
+
+/* Used for AME, it directly reclaims the dpu rank(s) and may block for a long period */
+__API_SYMBOL__ dpu_error_t
+dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
+{
+    LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);
+
+    dpu_error_t status = DPU_OK;
+    struct dpu_rank_t **ranks;
+    uint32_t each_rank;
     dpu_ame_handler_context_t handler_context;
     int ret;
 
+    /* Check if we need to trigger AME reclamation */
+
+    /* Check if we need to trigger AME reclamation */
     if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
         if (handler_context->handler && handler_context->handler->check_need_reclamation)
-            ret = handler_context->handler->trigger_direct_reclamation();
+            ret = handler_context->handler->check_need_reclamation(nr_ranks);
 
         if (ret) {
             status = DPU_ERR_ALLOCATION;
@@ -382,11 +442,50 @@ dpu_ame_trigger_direct_reclamation(void)
     }
     dpu_ame_handler_release(handler_context);
 
+    if (nr_ranks == DPU_ALLOCATE_ALL) {
+        return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
+    }
+
+    if (nr_ranks == 0) {
+        LOG_FN(WARNING, "cannot allocate 0 DPUs");
+        status = DPU_ERR_ALLOCATION;
+        goto end;
+    }
+
+    if ((ranks = calloc(nr_ranks, sizeof(*ranks))) == NULL) {
+        status = DPU_ERR_SYSTEM;
+        goto end;
+    }
+
+    for (each_rank = 0; each_rank < nr_ranks; ++each_rank) {
+        if ((status = dpu_get_rank_of_type(profile, &ranks[each_rank])) != DPU_OK) {
+            goto free_ranks;
+        }
+
+        if (!ranks[each_rank]->description->configuration.disable_reset_on_alloc) {
+            if ((status = dpu_reset_rank(ranks[each_rank])) != DPU_OK) {
+                goto free_ranks;
+            }
+        }
+    }
+
+    if ((status = init_dpu_set(ranks, nr_ranks, dpu_set)) != DPU_OK) {
+        goto free_ranks;
+    }
+
+    return DPU_OK;
+
+free_ranks:
+    for (unsigned int each_allocated_rank = 0; each_allocated_rank < each_rank; ++each_allocated_rank) {
+        dpu_free_rank(ranks[each_allocated_rank]);
+    }
+    free(ranks);
+
 end:
     return status;
 }
 
-__API_SYMBOL__ dpu_error_t
+static dpu_error_t
 dpu_ame_union_two_dpu_sets(struct dpu_set_t *set1, struct dpu_set_t *set2)
 {
     dpu_error_t status = DPU_OK;
@@ -433,7 +532,25 @@ end:
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
+dpu_ame_dpu_sets_sync_xfer(struct dpu_set_t *sets, uint32_t nr_sets)
+{
+    for (uint32_t i = 0; i < nr_sets; ++i)
+        dpu_sync(sets[i]);
+    return DPU_OK;
+}
+
+__API_SYMBOL__ dpu_error_t
+dpu_ame_union_dpu_sets(struct dpu_set_t *sets, uint32_t nr_sets)
+{
+    for (uint32_t i = 1; i < nr_sets; ++i)
+        dpu_ame_union_two_dpu_sets(&sets[0], &sets[i]);
+
+    return DPU_OK;
+}
+
+/* This API is used by AME. */
+__API_SYMBOL__ dpu_error_t
+dpu_alloc_ranks_fast(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, uint32_t *nr_alloc_ranks)
 {
     LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);
 
@@ -448,29 +565,30 @@ dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_se
         if (handler_context->handler && handler_context->handler->check_need_reclamation)
             ret = handler_context->handler->check_need_reclamation(nr_ranks);
 
-        if (ret) {
+        if (ret < 0) {
             status = DPU_ERR_ALLOCATION;
             goto end;
         }
+        *nr_alloc_ranks = ret;
     }
     dpu_ame_handler_release(handler_context);
 
-    if (nr_ranks == DPU_ALLOCATE_ALL) {
+    if (*nr_alloc_ranks == DPU_ALLOCATE_ALL) {
         return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
     }
 
-    if (nr_ranks == 0) {
+    if (*nr_alloc_ranks == 0) {
         LOG_FN(WARNING, "cannot allocate 0 DPUs");
         status = DPU_ERR_ALLOCATION;
         goto end;
     }
 
-    if ((ranks = calloc(nr_ranks, sizeof(*ranks))) == NULL) {
+    if ((ranks = calloc(*nr_alloc_ranks, sizeof(*ranks))) == NULL) {
         status = DPU_ERR_SYSTEM;
         goto end;
     }
 
-    for (each_rank = 0; each_rank < nr_ranks; ++each_rank) {
+    for (each_rank = 0; each_rank < *nr_alloc_ranks; ++each_rank) {
         if ((status = dpu_get_rank_of_type(profile, &ranks[each_rank])) != DPU_OK) {
             goto free_ranks;
         }
@@ -482,7 +600,7 @@ dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_se
         }
     }
 
-    if ((status = init_dpu_set(ranks, nr_ranks, dpu_set)) != DPU_OK) {
+    if ((status = init_dpu_set(ranks, *nr_alloc_ranks, dpu_set)) != DPU_OK) {
         goto free_ranks;
     }
 
