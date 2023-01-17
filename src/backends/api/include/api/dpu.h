@@ -101,6 +101,8 @@ typedef enum _dpu_callback_flags_t {
     DPU_CALLBACK_SINGLE_CALL = 1 << 2,
 } dpu_callback_flags_t;
 
+typedef void (*rank_reclamation_callback_fn) (struct dpu_set_t, void *bc_args);
+
 /**
  * @brief Error management for DPU api functions
  * @param statement the call to the DPU api to execute and check
@@ -185,25 +187,7 @@ dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dp
  * @return Whether the operation was successful.
  */
 dpu_error_t
-dpu_alloc_ranks_fine_grained(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, uint32_t *nr_alloc_ranks);
-
-/**
- * @brief Sync the first `nr_sets` sets in `sets`.
- * @param pointer to the first dpu set.
- * @param number of dpu sets.
- * @return Whether the operation was successful.
- */
-dpu_error_t
-dpu_ame_dpu_sets_sync_xfer(struct dpu_set_t *sets, uint32_t nr_sets);
-
-/**
- * @brief Union the first `nr_sets` sets in `sets` into one set. The merged set is stored at `sets`.
- * @param pointer to the first dpu set.
- * @param number of dpu sets.
- * @return Whether the operation was successful.
- */
-dpu_error_t
-dpu_ame_union_dpu_sets(struct dpu_set_t *sets, uint32_t nr_sets);
+dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args);
 
 /**
  * @brief Free all the DPUs of a DPU set.
@@ -408,7 +392,7 @@ dpu_load(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t
  * @return Whether the operation was successful.
  */
 dpu_error_t
-dpu_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t *program_our);
+dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out);
 
 /**
  * @brief Get the requested symbol information.

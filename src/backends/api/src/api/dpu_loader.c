@@ -142,7 +142,7 @@ dpu_load_generic(struct dpu_set_t dpu_set,
     uint8_t *buffer,
     size_t buffer_size,
     struct dpu_program_t *program_in,
-    struct dpu_program_t *program_out,
+    struct dpu_program_t **program_out,
     struct dpu_program_t **program,
     load_elf_program_fct_t load_elf_program)
 {
@@ -208,8 +208,10 @@ dpu_load_generic(struct dpu_set_t dpu_set,
     if (program != NULL) {
         *program = runtime;
     }
-    if (!program_out)
-        program_out = runtime;
+
+    if (program_out != NULL) {
+        *program_out = runtime;
+    }
     goto close_elf;
 
 free_runtime:
@@ -268,7 +270,7 @@ dpu_load(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t *program_out)
+dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out)
 {
     return dpu_load_generic(dpu_set, binary_path, NULL, 0, program_in, program_out, program, __dpu_load_elf_program);
 }
