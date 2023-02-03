@@ -365,6 +365,121 @@ error_free_ranks:
 }
 
 __API_SYMBOL__ dpu_error_t
+dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set)
+{
+    LOG_FN(DEBUG, "%d, \"%s\"", nr_dpus, profile);
+
+    bool dispatch_on_all_ranks;
+
+    if (nr_dpus == 0) {
+        LOG_FN(WARNING, "cannot allocate 0 DPUs");
+        return DPU_ERR_ALLOCATION;
+    }
+
+    {
+        dpu_properties_t properties = dpu_properties_load_from_profile(profile);
+        if (properties == DPU_PROPERTIES_INVALID) {
+            return DPU_ERR_INVALID_PROFILE;
+        }
+
+        if (!fetch_boolean_property(properties, DPU_PROFILE_PROPERTY_DISPATCH_ON_ALL_RANKS, &dispatch_on_all_ranks, false)) {
+            dpu_properties_delete(properties);
+            return DPU_ERR_INVALID_PROFILE;
+        }
+
+        dpu_properties_delete(properties);
+    }
+
+    // dispatch on all ranks means we try to allocate as much ranks as possible to dispatch our DPUs
+    dispatch_on_all_ranks = dispatch_on_all_ranks && (nr_dpus != DPU_ALLOCATE_ALL);
+
+    uint32_t capacity = 0;
+    uint32_t current_nr_of_dpus = 0;
+    uint32_t current_nr_of_ranks = 0;
+    struct dpu_rank_t **current_ranks = NULL;
+    dpu_error_t status = DPU_OK;
+
+    do {
+        // allocating space for new rank
+        if (current_nr_of_ranks == capacity) {
+            capacity = 2 * capacity + 2;
+
+            struct dpu_rank_t **current_ranks_tmp;
+            if ((current_ranks_tmp = realloc(current_ranks, capacity * sizeof(*current_ranks))) == NULL) {
+                status = DPU_ERR_SYSTEM;
+                goto error_free_ranks;
+            }
+            current_ranks = current_ranks_tmp;
+        }
+
+        struct dpu_rank_t **next_rank = current_ranks + current_nr_of_ranks;
+        dpu_ame_handler_context_t handler_context;
+        int ret;
+
+        /* Check if we need to trigger AME reclamation */
+        if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+            if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
+                ret = handler_context->handler->alloc_ranks_direct(1);
+
+            if (ret < 0) {
+                status = DPU_ERR_ALLOCATION;
+                goto error_free_ranks;
+            }
+        }
+        dpu_ame_handler_release(handler_context);
+
+        // We try to allocate a new rank
+        status = dpu_get_rank_of_type(profile, next_rank);
+
+        // case : it failed but we simply allocate all
+        if (status == DPU_ERR_ALLOCATION && current_nr_of_ranks != 0 && (nr_dpus == DPU_ALLOCATE_ALL || dispatch_on_all_ranks)) {
+            // in case not enough dpus
+            if (dispatch_on_all_ranks && current_nr_of_dpus < nr_dpus) {
+                goto error_free_ranks;
+            }
+            // case : it failed but that's not normal
+        } else if (status != DPU_OK) {
+            goto error_free_ranks;
+            // case : otherwise it passed
+        } else {
+            current_nr_of_ranks++;
+            if (!(*next_rank)->description->configuration.disable_reset_on_alloc) {
+                if ((status = dpu_reset_rank(*next_rank)) != DPU_OK) {
+                    goto error_free_ranks;
+                }
+            }
+            current_nr_of_dpus += get_nr_of_dpus_in_rank(*next_rank);
+        }
+        // we either reached sufficient dpus or failed to allocate
+    } while ((current_nr_of_ranks < nr_dpus) && (dispatch_on_all_ranks || current_nr_of_dpus < nr_dpus)
+        && (status != DPU_ERR_ALLOCATION));
+
+    if (nr_dpus == DPU_ALLOCATE_ALL) {
+        nr_dpus = current_nr_of_dpus;
+    }
+
+    if ((status = disable_unused_dpus(current_nr_of_dpus, nr_dpus, current_ranks, current_nr_of_ranks) != DPU_OK)) {
+        goto error_free_ranks;
+    }
+
+    if ((status = init_dpu_set(current_ranks, current_nr_of_ranks, dpu_set)) != DPU_OK) {
+        goto error_free_ranks;
+    }
+
+    return DPU_OK;
+
+error_free_ranks:
+    for (unsigned int each_allocated_rank = 0; each_allocated_rank < current_nr_of_ranks; ++each_allocated_rank) {
+        dpu_free_rank(current_ranks[each_allocated_rank]);
+    }
+    if (current_ranks != NULL) {
+        free(current_ranks);
+    }
+    return status;
+}
+
+
+__API_SYMBOL__ dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
 {
     LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);

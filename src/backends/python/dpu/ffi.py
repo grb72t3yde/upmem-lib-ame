@@ -1580,6 +1580,11 @@ if _libs["libdpu.so"].has("dpu_alloc", "cdecl"):
     dpu_alloc.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
     dpu_alloc.restype = dpu_error_t
 
+if _libs["libdpu.so"].has("dpu_alloc_direct_reclaim", "cdecl"):
+    dpu_alloc = _libs["libdpu.so"].get("dpu_alloc", "cdecl")
+    dpu_alloc.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
+    dpu_alloc.restype = dpu_error_t
+
 # dpu.h: 158
 if _libs["libdpu.so"].has("dpu_alloc_ranks", "cdecl"):
     dpu_alloc_ranks = _libs["libdpu.so"].get("dpu_alloc_ranks", "cdecl")

@@ -145,6 +145,9 @@ typedef void (*rank_reclamation_callback_fn) (struct dpu_set_t, void *bc_args);
 dpu_error_t
 dpu_alloc(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
 
+dpu_error_t
+dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
+
 /**
  * @brief Allocate the specified number of DPU ranks.
  *
