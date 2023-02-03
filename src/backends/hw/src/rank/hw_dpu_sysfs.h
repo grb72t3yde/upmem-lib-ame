@@ -29,10 +29,10 @@ uint8_t
 dpu_sysfs_get_nb_physical_ranks();
 
 int
-dpu_sysfs_ame_trigger_async_reclamation(void);
+dpu_sysfs_ame_alloc_ranks_direct(int nr_req_ranks);
 
 int
-dpu_sysfs_ame_check(int nr_req_ranks);
+dpu_sysfs_ame_alloc_ranks_async(int nr_req_ranks);
 
 int
 dpu_sysfs_get_available_rank(const char *rank_path, struct dpu_rank_fs *rank_fs);

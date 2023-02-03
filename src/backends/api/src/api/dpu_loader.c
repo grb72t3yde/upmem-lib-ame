@@ -141,6 +141,8 @@ dpu_load_generic(struct dpu_set_t dpu_set,
     const char *path,
     uint8_t *buffer,
     size_t buffer_size,
+    struct dpu_program_t *program_in,
+    struct dpu_program_t **program_out,
     struct dpu_program_t **program,
     load_elf_program_fct_t load_elf_program)
 {
@@ -148,11 +150,15 @@ dpu_load_generic(struct dpu_set_t dpu_set,
     dpu_elf_file_t elf_info;
     struct dpu_program_t *runtime;
 
-    if ((runtime = malloc(sizeof(*runtime))) == NULL) {
-        status = DPU_ERR_SYSTEM;
-        goto end;
+    if (program_in) {
+        runtime = program_in;
+    } else {
+        if ((runtime = malloc(sizeof(*runtime))) == NULL) {
+            status = DPU_ERR_SYSTEM;
+            goto end;
+        }
+        dpu_init_program_ref(runtime);
     }
-    dpu_init_program_ref(runtime);
 
     dpu_description_t description = get_set_description(&dpu_set);
 
@@ -202,6 +208,10 @@ dpu_load_generic(struct dpu_set_t dpu_set,
     if (program != NULL) {
         *program = runtime;
     }
+
+    if (program_out != NULL) {
+        *program_out = runtime;
+    }
     goto close_elf;
 
 free_runtime:
@@ -229,7 +239,7 @@ dpu_load_from_memory(struct dpu_set_t dpu_set, uint8_t *buffer, size_t buffer_si
 {
     LOG_FN(DEBUG, "%p %lu", buffer, buffer_size);
 
-    return dpu_load_generic(dpu_set, NULL, buffer, buffer_size, program, __dpu_load_elf_program_from_incbin);
+    return dpu_load_generic(dpu_set, NULL, buffer, buffer_size, NULL, NULL, program, __dpu_load_elf_program_from_incbin);
 }
 
 __API_SYMBOL__ dpu_error_t
@@ -237,7 +247,7 @@ dpu_load_from_incbin(struct dpu_set_t dpu_set, struct dpu_incbin_t *incbin, stru
 {
     LOG_FN(INFO, "%p %zu %s", incbin->buffer, incbin->size, incbin->path);
 
-    return dpu_load_generic(dpu_set, incbin->path, incbin->buffer, incbin->size, program, __dpu_load_elf_program_from_incbin);
+    return dpu_load_generic(dpu_set, incbin->path, incbin->buffer, incbin->size, NULL, NULL, program, __dpu_load_elf_program_from_incbin);
 }
 
 static dpu_error_t
@@ -256,5 +266,12 @@ dpu_load(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t
 {
     LOG_FN(INFO, "\"%s\"", binary_path);
 
-    return dpu_load_generic(dpu_set, binary_path, NULL, 0, program, __dpu_load_elf_program);
+    return dpu_load_generic(dpu_set, binary_path, NULL, 0, NULL, NULL, program, __dpu_load_elf_program);
 }
+
+__API_SYMBOL__ dpu_error_t
+dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out)
+{
+    return dpu_load_generic(dpu_set, binary_path, NULL, 0, program_in, program_out, program, __dpu_load_elf_program);
+}
+

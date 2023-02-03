@@ -101,6 +101,8 @@ typedef enum _dpu_callback_flags_t {
     DPU_CALLBACK_SINGLE_CALL = 1 << 2,
 } dpu_callback_flags_t;
 
+typedef void (*rank_reclamation_callback_fn) (struct dpu_set_t, void *bc_args);
+
 /**
  * @brief Error management for DPU api functions
  * @param statement the call to the DPU api to execute and check
@@ -143,6 +145,9 @@ typedef enum _dpu_callback_flags_t {
 dpu_error_t
 dpu_alloc(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
 
+dpu_error_t
+dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
+
 /**
  * @brief Allocate the specified number of DPU ranks.
  *
@@ -156,6 +161,36 @@ dpu_alloc(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
  */
 dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set);
+
+/**
+ * @brief Allocate the specified number of DPU ranks. Used by AME users. It may perform a direct reclamation.
+ *
+ * Fails if the given number of DPU ranks cannot be allocated (unless `DPU_ALLOCATE_ALL` is used).
+ *
+ * @param nr_ranks number of DPU ranks to allocate. Use `DPU_ALLOCATE_ALL` to allocate all available DPU ranks.
+ * @param profile list of (key=value) separated by comma to specify what kind of dpu to allocate.
+ *                Use `NULL` for the default profile.
+ * @param dpu_set storage for the DPU set
+ * @return Whether the operation was successful.
+ */
+dpu_error_t
+dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set);
+
+/**
+ * @brief Allocate the specified number of DPU ranks. Used by AME users. It returns immediately if there is any free ranks; 
+ * otherwise, it performs a direct reclaimation to reclaim a rank.
+ *
+ * Fails if the given number of DPU ranks cannot be allocated (unless `DPU_ALLOCATE_ALL` is used).
+ *
+ * @param nr_ranks number of DPU ranks to allocate. Use `DPU_ALLOCATE_ALL` to allocate all available DPU ranks.
+ * @param profile list of (key=value) separated by comma to specify what kind of dpu to allocate.
+ *                Use `NULL` for the default profile.
+ * @param dpu_set storage for the DPU set
+ * @param nr_alloc_ranks storage for the allocated ranks number
+ * @return Whether the operation was successful.
+ */
+dpu_error_t
+dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args);
 
 /**
  * @brief Free all the DPUs of a DPU set.
@@ -348,6 +383,19 @@ dpu_load_from_incbin(struct dpu_set_t dpu_set, struct dpu_incbin_t *incbin, stru
  */
 dpu_error_t
 dpu_load(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program);
+
+/**
+ * @brief Load a program in all the DPUs of a DPU set.
+ *
+ * @param dpu_set the targeted DPU set
+ * @param binary_path the path of the binary file we want to load in the DPUs
+ * @param program the DPU program information. Can be `NULL`.
+ * @param program_in the DPU program to be used for loading. Can be `NULL`.
+ * @param program_out the DPU program information. Can be `NULL`.
+ * @return Whether the operation was successful.
+ */
+dpu_error_t
+dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out);
 
 /**
  * @brief Get the requested symbol information.
