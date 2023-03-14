@@ -1581,9 +1581,9 @@ if _libs["libdpu.so"].has("dpu_alloc", "cdecl"):
     dpu_alloc.restype = dpu_error_t
 
 if _libs["libdpu.so"].has("dpu_alloc_direct_reclaim", "cdecl"):
-    dpu_alloc = _libs["libdpu.so"].get("dpu_alloc", "cdecl")
-    dpu_alloc.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
-    dpu_alloc.restype = dpu_error_t
+    dpu_alloc_direct_reclaim = _libs["libdpu.so"].get("dpu_alloc", "cdecl")
+    dpu_alloc_direct_reclaim.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
+    dpu_alloc_direct_recltim.restype = dpu_error_t
 
 # dpu.h: 158
 if _libs["libdpu.so"].has("dpu_alloc_ranks", "cdecl"):
@@ -1593,15 +1593,15 @@ if _libs["libdpu.so"].has("dpu_alloc_ranks", "cdecl"):
 
 # dpu.h: 172
 if _libs["libdpu.so"].has("dpu_alloc_ranks_direct_reclaim", "cdecl"):
-    dpu_alloc_ranks = _libs["libdpu.so"].get("dpu_alloc_ranks_direct_reclaim", "cdecl")
-    dpu_alloc_ranks.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
-    dpu_alloc_ranks.restype = dpu_error_t
+    dpu_alloc_ranks_direct_reclaim = _libs["libdpu.so"].get("dpu_alloc_ranks_direct_reclaim", "cdecl")
+    dpu_alloc_ranks_direct_reclaim.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t)]
+    dpu_alloc_ranks_direct_reclaim.restype = dpu_error_t
 
 # dpu.h: 188
 if _libs["libdpu.so"].has("dpu_alloc_ranks_async", "cdecl"):
-    dpu_alloc_ranks = _libs["libdpu.so"].get("dpu_alloc_ranks_async", "cdecl")
-    dpu_alloc_ranks.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t), rank_reclamation_callback_fn]
-    dpu_alloc_ranks.restype = dpu_error_t
+    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_alloc_ranks_async", "cdecl")
+    dpu_alloc_ranks_async.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t), rank_reclamation_callback_fn]
+    dpu_alloc_ranks_async.restype = dpu_error_t
 
 # dpu.h: 197
 if _libs["libdpu.so"].has("dpu_ame_dpu_sets_sync_xfer", "cdecl"):
