@@ -686,11 +686,13 @@ dpu_alloc_ranks_fast(uint32_t nr_ranks, const char *profile, struct dpu_set_t *d
         return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
     }
 
+    /*
     if (*nr_alloc_ranks == 0) {
         LOG_FN(WARNING, "cannot allocate 0 DPUs");
         status = DPU_ERR_ALLOCATION;
         goto end;
     }
+    */
 
     if ((ranks = calloc(*nr_alloc_ranks, sizeof(*ranks))) == NULL) {
         status = DPU_ERR_SYSTEM;
@@ -738,16 +740,17 @@ dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *
     while (1) {
         status = dpu_alloc_ranks_fast(nr_target_ranks, profile, &tmp_sets[set_idx], &nr_alloc_ranks);
 
-        if (status != DPU_OK)
+        if (status != DPU_OK) {
             goto err;
+        }
+
+        if (nr_alloc_ranks == 0)
+            break;
 
         callback_fn(tmp_sets[set_idx], cb_args);
 
         nr_target_ranks -= nr_alloc_ranks;
         set_idx++;
-
-        if (nr_target_ranks == 0)
-            break;
     }
 
     dpu_ame_dpu_sets_sync_xfer(tmp_sets, set_idx);
