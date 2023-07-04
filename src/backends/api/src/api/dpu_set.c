@@ -478,6 +478,54 @@ error_free_ranks:
     return status;
 }
 
+__API_SYMBOL__ dpu_error_t
+dpu_ame_get_usage(uint32_t *usage)
+{
+    dpu_error_t status = DPU_OK;
+
+    dpu_ame_handler_context_t handler_context;
+    int ret;
+
+    /* Check if we need to trigger AME reclamation */
+    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+        if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
+            ret = handler_context->handler->get_usage();
+
+        if (ret < 0) {
+            status = DPU_ERR_ALLOCATION;
+            goto error;
+        }
+        *usage = ret;
+    }
+    dpu_ame_handler_release(handler_context);
+
+error:
+    return status;
+}
+
+__API_SYMBOL__ dpu_error_t
+dpu_ame_set_threshold(uint32_t threshold)
+{
+    dpu_error_t status = DPU_OK;
+
+    dpu_ame_handler_context_t handler_context;
+    int ret;
+
+    /* Check if we need to trigger AME reclamation */
+    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+        if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
+            ret = handler_context->handler->set_threshold(threshold);
+
+        if (ret < 0) {
+            status = DPU_ERR_ALLOCATION;
+            goto error;
+        }
+    }
+    dpu_ame_handler_release(handler_context);
+
+error:
+    return status;
+}
 
 __API_SYMBOL__ dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)

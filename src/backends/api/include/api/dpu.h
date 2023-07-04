@@ -192,6 +192,12 @@ dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dp
 dpu_error_t
 dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args);
 
+dpu_error_t
+dpu_ame_get_usage(uint32_t *usage);
+
+dpu_error_t
+dpu_ame_set_threshold(uint32_t threshold);
+
 /**
  * @brief Free all the DPUs of a DPU set.
  *

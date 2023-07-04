@@ -53,6 +53,8 @@ typedef struct dpu_rank_handler {
 typedef struct dpu_ame_handler {
     int (*alloc_ranks_direct)(int nr_req_ranks);
     int (*alloc_ranks_async)(int nr_req_ranks);
+    int (*get_usage)(void);
+    int (*set_threshold)(int threshold);
 } * dpu_ame_handler_t;
 
 #define RANK_FEATURE(rank, feature) ((rank)->handler_context->handler->features.feature)
