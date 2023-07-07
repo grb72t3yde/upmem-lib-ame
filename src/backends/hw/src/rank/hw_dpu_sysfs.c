@@ -352,6 +352,78 @@ err:
     return -errno;
 }
 
+int
+dpu_sysfs_ame_get_usage(void)
+{
+    struct dpu_rank_udev udev;
+    struct udev_list_entry *dev_dpu_ame_list_entry;
+    struct dpu_ame_usage_context usage_context;
+    int dpu_ame_fd, ret = 0;
+    extern int errno;
+
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+
+    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    {
+        const char *path_dpu_ame, *dev_dpu_ame_path;
+
+        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
+        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+
+        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
+        if (dpu_ame_fd < 0)
+            goto err;
+
+        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_GET_USAGE, &usage_context);
+
+        close(dpu_ame_fd);
+        if (ret < 0)
+            goto err;
+    }
+end:
+    return usage_context.nr_used_ranks;
+err:
+    return -errno;
+}
+
+int
+dpu_sysfs_ame_set_threshold(int threshold)
+{
+    struct dpu_rank_udev udev;
+    struct udev_list_entry *dev_dpu_ame_list_entry;
+    struct dpu_ame_dynamic_threshold_context dynamic_threshold_context;
+    int dpu_ame_fd, ret = 0;
+    extern int errno;
+
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+
+    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    {
+        const char *path_dpu_ame, *dev_dpu_ame_path;
+        dynamic_threshold_context.node0_threshold = (threshold >> 1);
+        dynamic_threshold_context.node1_threshold = (threshold >> 1) + (threshold & 1);
+
+        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
+        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+
+        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
+        if (dpu_ame_fd < 0)
+            goto err;
+
+        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_SET_THRESHOLD, &dynamic_threshold_context);
+
+        close(dpu_ame_fd);
+        if (ret < 0)
+            goto err;
+    }
+end:
+    return 0;
+err:
+    return -errno;
+}
+
 // TODO allocation must be smarter than just allocating rank "one by one":
 // it is better (at memory bandwidth point of view) to allocate ranks
 // from unused channels rather than allocating ranks of a same channel

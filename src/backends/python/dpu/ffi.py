@@ -1603,6 +1603,16 @@ if _libs["libdpu.so"].has("dpu_alloc_ranks_async", "cdecl"):
     dpu_alloc_ranks_async.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t), rank_reclamation_callback_fn]
     dpu_alloc_ranks_async.restype = dpu_error_t
 
+if _libs["libdpu.so"].has("dpu_ame_get_usage", "cdecl"):
+    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_ame_get_usage", "cdecl")
+    dpu_alloc_ranks_async.argtypes = [POINTER(c_uint32)]
+    dpu_alloc_ranks_async.restype = dpu_error_t
+
+if _libs["libdpu.so"].has("dpu_ame_set_threshold", "cdecl"):
+    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_ame_set_threshold", "cdecl")
+    dpu_alloc_ranks_async.argtypes = [c_uint32]
+    dpu_alloc_ranks_async.restype = dpu_error_t
+
 # dpu.h: 197
 if _libs["libdpu.so"].has("dpu_ame_dpu_sets_sync_xfer", "cdecl"):
     dpu_ame_dpu_sets_sync_xfer = _libs["libdpu.so"].get("dpu_ame_dpu_sets_sync_xfer", "cdecl")
