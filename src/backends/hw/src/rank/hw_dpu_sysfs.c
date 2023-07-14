@@ -17,11 +17,11 @@
 #include <string.h>
 #include <inttypes.h>
 #include <dpu_description.h>
-#include <dpu_ame.h>
+#include <dpu_membo.h>
 
 /* Header shared with driver */
 #include "dpu_rank_ioctl.h"
-#include "dpu_ame_ioctl.h"
+#include "dpu_membo_ioctl.h"
 #include "dpu_region_address_translation.h"
 #include "dpu_region_constants.h"
 #include "hw_dpu_sysfs.h"
@@ -281,32 +281,32 @@ end:
 }
 
 int
-dpu_sysfs_ame_alloc_ranks_direct(int nr_req_ranks)
+dpu_sysfs_membo_alloc_ranks_direct(int nr_req_ranks)
 {
     struct dpu_rank_udev udev;
-    struct udev_list_entry *dev_dpu_ame_list_entry;
-    struct dpu_ame_allocation_context allocation_context;
-    int dpu_ame_fd, ret = 0;
+    struct udev_list_entry *dev_dpu_membo_list_entry;
+    struct dpu_membo_allocation_context allocation_context;
+    int dpu_membo_fd, ret = 0;
     extern int errno;
 
-    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_membo", NULL, udev.devices, end);
 
-    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    udev_list_entry_foreach(dev_dpu_membo_list_entry, udev.devices)
     {
-        const char *path_dpu_ame, *dev_dpu_ame_path;
+        const char *path_dpu_membo, *dev_dpu_membo_path;
         allocation_context.nr_req_ranks = nr_req_ranks;
 
-        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
-        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
-        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+        path_dpu_membo = udev_list_entry_get_name(dev_dpu_membo_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_membo);
+        dev_dpu_membo_path = udev_device_get_devnode(udev.dev);
 
-        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
-        if (dpu_ame_fd < 0)
+        dpu_membo_fd = open(dev_dpu_membo_path, O_RDWR);
+        if (dpu_membo_fd < 0)
             goto err;
 
-        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_ALLOC_RANKS_DIRECT, &allocation_context);
+        ret = ioctl(dpu_membo_fd, DPU_MEMBO_IOCTL_ALLOC_RANKS_DIRECT, &allocation_context);
 
-        close(dpu_ame_fd);
+        close(dpu_membo_fd);
         if (ret < 0)
             goto err;
     }
@@ -317,32 +317,32 @@ err:
 }
 
 int
-dpu_sysfs_ame_alloc_ranks_async(int nr_req_ranks)
+dpu_sysfs_membo_alloc_ranks_async(int nr_req_ranks)
 {
     struct dpu_rank_udev udev;
-    struct udev_list_entry *dev_dpu_ame_list_entry;
-    struct dpu_ame_allocation_context allocation_context;
-    int dpu_ame_fd, ret = 0;
+    struct udev_list_entry *dev_dpu_membo_list_entry;
+    struct dpu_membo_allocation_context allocation_context;
+    int dpu_membo_fd, ret = 0;
     extern int errno;
 
-    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_membo", NULL, udev.devices, end);
 
-    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    udev_list_entry_foreach(dev_dpu_membo_list_entry, udev.devices)
     {
-        const char *path_dpu_ame, *dev_dpu_ame_path;
+        const char *path_dpu_membo, *dev_dpu_membo_path;
         allocation_context.nr_req_ranks = nr_req_ranks;
 
-        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
-        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
-        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+        path_dpu_membo = udev_list_entry_get_name(dev_dpu_membo_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_membo);
+        dev_dpu_membo_path = udev_device_get_devnode(udev.dev);
 
-        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
-        if (dpu_ame_fd < 0)
+        dpu_membo_fd = open(dev_dpu_membo_path, O_RDWR);
+        if (dpu_membo_fd < 0)
             goto err;
 
-        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_ALLOC_RANKS_ASYNC, &allocation_context);
+        ret = ioctl(dpu_membo_fd, DPU_MEMBO_IOCTL_ALLOC_RANKS_ASYNC, &allocation_context);
 
-        close(dpu_ame_fd);
+        close(dpu_membo_fd);
         if (ret < 0)
             goto err;
     }
@@ -353,31 +353,31 @@ err:
 }
 
 int
-dpu_sysfs_ame_get_usage(void)
+dpu_sysfs_membo_get_usage(void)
 {
     struct dpu_rank_udev udev;
-    struct udev_list_entry *dev_dpu_ame_list_entry;
-    struct dpu_ame_usage_context usage_context;
-    int dpu_ame_fd, ret = 0;
+    struct udev_list_entry *dev_dpu_membo_list_entry;
+    struct dpu_membo_usage_context usage_context;
+    int dpu_membo_fd, ret = 0;
     extern int errno;
 
-    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_membo", NULL, udev.devices, end);
 
-    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    udev_list_entry_foreach(dev_dpu_membo_list_entry, udev.devices)
     {
-        const char *path_dpu_ame, *dev_dpu_ame_path;
+        const char *path_dpu_membo, *dev_dpu_membo_path;
 
-        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
-        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
-        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+        path_dpu_membo = udev_list_entry_get_name(dev_dpu_membo_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_membo);
+        dev_dpu_membo_path = udev_device_get_devnode(udev.dev);
 
-        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
-        if (dpu_ame_fd < 0)
+        dpu_membo_fd = open(dev_dpu_membo_path, O_RDWR);
+        if (dpu_membo_fd < 0)
             goto err;
 
-        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_GET_USAGE, &usage_context);
+        ret = ioctl(dpu_membo_fd, DPU_MEMBO_IOCTL_GET_USAGE, &usage_context);
 
-        close(dpu_ame_fd);
+        close(dpu_membo_fd);
         if (ret < 0)
             goto err;
     }
@@ -388,33 +388,33 @@ err:
 }
 
 int
-dpu_sysfs_ame_set_threshold(int threshold)
+dpu_sysfs_membo_set_threshold(int threshold)
 {
     struct dpu_rank_udev udev;
-    struct udev_list_entry *dev_dpu_ame_list_entry;
-    struct dpu_ame_dynamic_threshold_context dynamic_threshold_context;
-    int dpu_ame_fd, ret = 0;
+    struct udev_list_entry *dev_dpu_membo_list_entry;
+    struct dpu_membo_dynamic_threshold_context dynamic_threshold_context;
+    int dpu_membo_fd, ret = 0;
     extern int errno;
 
-    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_ame", NULL, udev.devices, end);
+    init_udev_enumerator(udev.enumerate, udev.udev, NULL, "dpu_membo", NULL, udev.devices, end);
 
-    udev_list_entry_foreach(dev_dpu_ame_list_entry, udev.devices)
+    udev_list_entry_foreach(dev_dpu_membo_list_entry, udev.devices)
     {
-        const char *path_dpu_ame, *dev_dpu_ame_path;
+        const char *path_dpu_membo, *dev_dpu_membo_path;
         dynamic_threshold_context.node0_threshold = (threshold >> 1);
         dynamic_threshold_context.node1_threshold = (threshold >> 1) + (threshold & 1);
 
-        path_dpu_ame = udev_list_entry_get_name(dev_dpu_ame_list_entry);
-        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_ame);
-        dev_dpu_ame_path = udev_device_get_devnode(udev.dev);
+        path_dpu_membo = udev_list_entry_get_name(dev_dpu_membo_list_entry);
+        udev.dev = udev_device_new_from_syspath(udev.udev, path_dpu_membo);
+        dev_dpu_membo_path = udev_device_get_devnode(udev.dev);
 
-        dpu_ame_fd = open(dev_dpu_ame_path, O_RDWR);
-        if (dpu_ame_fd < 0)
+        dpu_membo_fd = open(dev_dpu_membo_path, O_RDWR);
+        if (dpu_membo_fd < 0)
             goto err;
 
-        ret = ioctl(dpu_ame_fd, DPU_AME_IOCTL_SET_THRESHOLD, &dynamic_threshold_context);
+        ret = ioctl(dpu_membo_fd, DPU_MEMBO_IOCTL_SET_THRESHOLD, &dynamic_threshold_context);
 
-        close(dpu_ame_fd);
+        close(dpu_membo_fd);
         if (ret < 0)
             goto err;
     }

@@ -365,7 +365,7 @@ error_free_ranks:
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set)
+dpu_alloc_membo(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set)
 {
     LOG_FN(DEBUG, "%d, \"%s\"", nr_dpus, profile);
 
@@ -413,11 +413,11 @@ dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t
         }
 
         struct dpu_rank_t **next_rank = current_ranks + current_nr_of_ranks;
-        dpu_ame_handler_context_t handler_context;
+        dpu_membo_handler_context_t handler_context;
         int ret;
 
-        /* Check if we need to trigger AME reclamation */
-        if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+        /* Check if we need to trigger MEMBO reclamation */
+        if (dpu_membo_handler_instantiate(HW, &handler_context, false)) {
             if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
                 ret = handler_context->handler->alloc_ranks_direct(1);
 
@@ -426,7 +426,7 @@ dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t
                 goto error_free_ranks;
             }
         }
-        dpu_ame_handler_release(handler_context);
+        dpu_membo_handler_release(handler_context);
 
         // We try to allocate a new rank
         status = dpu_get_rank_of_type(profile, next_rank);
@@ -479,15 +479,15 @@ error_free_ranks:
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_ame_get_usage(uint32_t *usage)
+dpu_membo_get_usage(uint32_t *usage)
 {
     dpu_error_t status = DPU_OK;
 
-    dpu_ame_handler_context_t handler_context;
+    dpu_membo_handler_context_t handler_context;
     int ret;
 
-    /* Check if we need to trigger AME reclamation */
-    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+    /* Check if we need to trigger membo reclamation */
+    if (dpu_membo_handler_instantiate(HW, &handler_context, false)) {
         if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
             ret = handler_context->handler->get_usage();
 
@@ -497,22 +497,22 @@ dpu_ame_get_usage(uint32_t *usage)
         }
         *usage = ret;
     }
-    dpu_ame_handler_release(handler_context);
+    dpu_membo_handler_release(handler_context);
 
 error:
     return status;
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_ame_set_threshold(uint32_t threshold)
+dpu_membo_set_threshold(uint32_t threshold)
 {
     dpu_error_t status = DPU_OK;
 
-    dpu_ame_handler_context_t handler_context;
+    dpu_membo_handler_context_t handler_context;
     int ret;
 
-    /* Check if we need to trigger AME reclamation */
-    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+    /* Check if we need to trigger membo reclamation */
+    if (dpu_membo_handler_instantiate(HW, &handler_context, false)) {
         if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
             ret = handler_context->handler->set_threshold(threshold);
 
@@ -521,7 +521,7 @@ dpu_ame_set_threshold(uint32_t threshold)
             goto error;
         }
     }
-    dpu_ame_handler_release(handler_context);
+    dpu_membo_handler_release(handler_context);
 
 error:
     return status;
@@ -579,20 +579,20 @@ end:
     return status;
 }
 
-/* Used for AME, it directly reclaims the dpu rank(s) and may block for a long period */
+/* Used for membo, it directly reclaims the dpu rank(s) and may block for a long period */
 __API_SYMBOL__ dpu_error_t
-dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
+dpu_alloc_ranks_membo(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set)
 {
     LOG_FN(DEBUG, "%d, \"%s\"", nr_ranks, profile);
 
     dpu_error_t status = DPU_OK;
     struct dpu_rank_t **ranks;
     uint32_t each_rank;
-    dpu_ame_handler_context_t handler_context;
+    dpu_membo_handler_context_t handler_context;
     int ret;
 
-    /* Check if we need to trigger AME reclamation */
-    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+    /* Check if we need to trigger membo reclamation */
+    if (dpu_membo_handler_instantiate(HW, &handler_context, false)) {
         if (handler_context->handler && handler_context->handler->alloc_ranks_direct)
             ret = handler_context->handler->alloc_ranks_direct(nr_ranks);
 
@@ -601,7 +601,7 @@ dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dp
             goto end;
         }
     }
-    dpu_ame_handler_release(handler_context);
+    dpu_membo_handler_release(handler_context);
 
     if (nr_ranks == DPU_ALLOCATE_ALL) {
         return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
@@ -647,7 +647,7 @@ end:
 }
 
 static dpu_error_t
-dpu_ame_union_two_dpu_sets(struct dpu_set_t *set1, struct dpu_set_t *set2)
+dpu_membo_union_two_dpu_sets(struct dpu_set_t *set1, struct dpu_set_t *set2)
 {
     dpu_error_t status = DPU_OK;
 
@@ -689,7 +689,7 @@ end:
 }
 
 static dpu_error_t
-dpu_ame_dpu_sets_sync_xfer(struct dpu_set_t *sets, uint32_t nr_sets)
+dpu_membo_dpu_sets_sync_xfer(struct dpu_set_t *sets, uint32_t nr_sets)
 {
     for (uint32_t i = 0; i < nr_sets; ++i)
         dpu_sync(sets[i]);
@@ -697,15 +697,15 @@ dpu_ame_dpu_sets_sync_xfer(struct dpu_set_t *sets, uint32_t nr_sets)
 }
 
 static dpu_error_t
-dpu_ame_union_dpu_sets(struct dpu_set_t *sets, uint32_t nr_sets)
+dpu_membo_union_dpu_sets(struct dpu_set_t *sets, uint32_t nr_sets)
 {
     for (uint32_t i = 1; i < nr_sets; ++i)
-        dpu_ame_union_two_dpu_sets(&sets[0], &sets[i]);
+        dpu_membo_union_two_dpu_sets(&sets[0], &sets[i]);
 
     return DPU_OK;
 }
 
-/* This API is used by AME. */
+/* This API is used by membo. */
 static dpu_error_t
 dpu_alloc_ranks_fast(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, uint32_t *nr_alloc_ranks)
 {
@@ -714,11 +714,11 @@ dpu_alloc_ranks_fast(uint32_t nr_ranks, const char *profile, struct dpu_set_t *d
     dpu_error_t status = DPU_OK;
     struct dpu_rank_t **ranks;
     uint32_t each_rank;
-    dpu_ame_handler_context_t handler_context;
+    dpu_membo_handler_context_t handler_context;
     int ret;
 
-    /* Check if we need to trigger AME reclamation */
-    if (dpu_ame_handler_instantiate(HW, &handler_context, false)) {
+    /* Check if we need to trigger membo reclamation */
+    if (dpu_membo_handler_instantiate(HW, &handler_context, false)) {
         if (handler_context->handler && handler_context->handler->alloc_ranks_async)
             ret = handler_context->handler->alloc_ranks_async(nr_ranks);
 
@@ -728,7 +728,7 @@ dpu_alloc_ranks_fast(uint32_t nr_ranks, const char *profile, struct dpu_set_t *d
         }
         *nr_alloc_ranks = ret;
     }
-    dpu_ame_handler_release(handler_context);
+    dpu_membo_handler_release(handler_context);
 
     if (*nr_alloc_ranks == DPU_ALLOCATE_ALL) {
         return dpu_alloc(DPU_ALLOCATE_ALL, profile, dpu_set);
@@ -776,7 +776,7 @@ end:
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args)
+dpu_alloc_ranks_membo_dmp(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args)
 {
     dpu_error_t status = DPU_OK;
     struct dpu_set_t tmp_sets[nr_ranks];
@@ -801,8 +801,8 @@ dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *
         set_idx++;
     }
 
-    dpu_ame_dpu_sets_sync_xfer(tmp_sets, set_idx);
-    dpu_ame_union_dpu_sets(tmp_sets, set_idx);
+    dpu_membo_dpu_sets_sync_xfer(tmp_sets, set_idx);
+    dpu_membo_union_dpu_sets(tmp_sets, set_idx);
 
     memcpy(dpu_set, &tmp_sets[0], sizeof(struct dpu_set_t));
 

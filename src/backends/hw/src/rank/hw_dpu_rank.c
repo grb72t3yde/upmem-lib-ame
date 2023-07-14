@@ -108,11 +108,11 @@ __API_SYMBOL__ struct dpu_rank_handler hw_dpu_rank_handler = {
     .get_nr_dpu_ranks = hw_get_nr_dpu_ranks,
 };
 
-__API_SYMBOL__ struct dpu_ame_handler hw_dpu_ame_handler = {
-    .alloc_ranks_direct = dpu_sysfs_ame_alloc_ranks_direct,
-    .alloc_ranks_async = dpu_sysfs_ame_alloc_ranks_async,
-    .get_usage = dpu_sysfs_ame_get_usage,
-    .set_threshold = dpu_sysfs_ame_set_threshold,
+__API_SYMBOL__ struct dpu_membo_handler hw_dpu_membo_handler = {
+    .alloc_ranks_direct = dpu_sysfs_membo_alloc_ranks_direct,
+    .alloc_ranks_async = dpu_sysfs_membo_alloc_ranks_async,
+    .get_usage = dpu_sysfs_membo_get_usage,
+    .set_threshold = dpu_sysfs_membo_set_threshold,
 };
 
 typedef struct _hw_dpu_rank_context_t {

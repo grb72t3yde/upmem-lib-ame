@@ -39,13 +39,13 @@ static void
 dpu_rank_handler_free(dpu_rank_handler_context_t handler_context);
 
 static bool
-ame_initialize_static_interface_for_target(dpu_type_t target_type, bool verbose);
+membo_initialize_static_interface_for_target(dpu_type_t target_type, bool verbose);
 static void
-dpu_ame_handler_get(dpu_ame_handler_context_t handler_context);
+dpu_membo_handler_get(dpu_membo_handler_context_t handler_context);
 static void
-dpu_ame_handler_put(dpu_ame_handler_context_t handler_context);
+dpu_membo_handler_put(dpu_membo_handler_context_t handler_context);
 static void
-dpu_ame_handler_free(dpu_ame_handler_context_t handler_context);
+dpu_membo_handler_free(dpu_membo_handler_context_t handler_context);
 
 static bool
 find_library(dpu_type_t target_type, bool verbose);
@@ -55,17 +55,17 @@ static bool
 find_library_from_string(dpu_type_t target_type, const char *lib_path, bool verbose);
 
 static bool
-ame_find_library(dpu_type_t target_type, bool verbose);
+membo_find_library(dpu_type_t target_type, bool verbose);
 static bool
-ame_find_library_symbol(dpu_type_t target_type, const char *symbol_name, void **symbol_handle, bool verbose);
+membo_find_library_symbol(dpu_type_t target_type, const char *symbol_name, void **symbol_handle, bool verbose);
 static bool
-ame_find_library_from_string(dpu_type_t target_type, const char *lib_path, bool verbose);
+membo_find_library_from_string(dpu_type_t target_type, const char *lib_path, bool verbose);
 
 static bool
 set_generic_description_for_enabled_dpus(struct dpu_rank_t *rank, dpu_description_t description, dpu_properties_t properties);
 
 static struct _dpu_rank_handler_context_t handler_context[NB_OF_DPU_TYPES];
-static struct _dpu_ame_handler_context_t ame_handler_context[NB_OF_DPU_TYPES];
+static struct _dpu_membo_handler_context_t membo_handler_context[NB_OF_DPU_TYPES];
 
 #define STRING_MAX_SIZE PATH_MAX
 static const char *lib_id[NB_OF_DPU_TYPES] = {
@@ -173,23 +173,23 @@ dpu_rank_handler_instantiate(dpu_type_t type, dpu_rank_handler_context_t *ret_ha
 }
 
 __API_SYMBOL__ bool
-dpu_ame_handler_instantiate(dpu_type_t type, dpu_ame_handler_context_t *ret_handler_context, bool verbose)
+dpu_membo_handler_instantiate(dpu_type_t type, dpu_membo_handler_context_t *ret_handler_context, bool verbose)
 {
     exclusively();
-    if (ame_handler_context[type].handler == NULL) {
-        if (!ame_initialize_static_interface_for_target(type, verbose)) {
+    if (membo_handler_context[type].handler == NULL) {
+        if (!membo_initialize_static_interface_for_target(type, verbose)) {
             exclusively_end();
-            ame_handler_context[type].handler = NULL;
+            membo_handler_context[type].handler = NULL;
             return false;
         }
 
-        ame_handler_context[type].handler_refcount = 0;
+        membo_handler_context[type].handler_refcount = 0;
     }
     exclusively_end();
 
-    dpu_ame_handler_get(&ame_handler_context[type]);
+    dpu_membo_handler_get(&membo_handler_context[type]);
 
-    *ret_handler_context = &ame_handler_context[type];
+    *ret_handler_context = &membo_handler_context[type];
 
     return true;
 }
@@ -201,9 +201,9 @@ dpu_rank_handler_release(dpu_rank_handler_context_t handler_context)
 }
 
 __API_SYMBOL__ void
-dpu_ame_handler_release(dpu_ame_handler_context_t handler_context)
+dpu_membo_handler_release(dpu_membo_handler_context_t handler_context)
 {
-    dpu_ame_handler_put(handler_context);
+    dpu_membo_handler_put(handler_context);
 }
 
 static struct dpu_rank_t **dpu_rank_handler_dpu_rank_list;
@@ -432,17 +432,17 @@ close_library:
 }
 
 static bool
-ame_initialize_static_interface_for_target(dpu_type_t target_type, bool verbose)
+membo_initialize_static_interface_for_target(dpu_type_t target_type, bool verbose)
 {
-    if (!ame_find_library(target_type, verbose))
+    if (!membo_find_library(target_type, verbose))
         return false;
 
-    if (!ame_find_library_symbol(target_type, "dpu_ame_handler", (void *)&ame_handler_context[target_type].handler, verbose))
+    if (!membo_find_library_symbol(target_type, "dpu_membo_handler", (void *)&membo_handler_context[target_type].handler, verbose))
         goto close_library;
 
     return true;
 close_library:
-    dlclose(ame_handler_context[target_type].library);
+    dlclose(membo_handler_context[target_type].library);
 
     return false;
 }
@@ -468,23 +468,23 @@ dpu_rank_handler_free(dpu_rank_handler_context_t handler_context)
 }
 
 static void
-dpu_ame_handler_get(dpu_ame_handler_context_t handler_context)
+dpu_membo_handler_get(dpu_membo_handler_context_t handler_context)
 {
     __sync_add_and_fetch(&handler_context->handler_refcount, 1);
 }
 
 static void
-dpu_ame_handler_free(dpu_ame_handler_context_t handler_context)
+dpu_membo_handler_free(dpu_membo_handler_context_t handler_context)
 {
     handler_context->handler = NULL;
     dlclose(handler_context->library);
 }
 
 static void
-dpu_ame_handler_put(dpu_ame_handler_context_t handler_context)
+dpu_membo_handler_put(dpu_membo_handler_context_t handler_context)
 {
     if (__sync_sub_and_fetch(&handler_context->handler_refcount, 1) == 0)
-        dpu_ame_handler_free(handler_context);
+        dpu_membo_handler_free(handler_context);
 }
 
 
@@ -520,7 +520,7 @@ find_library(dpu_type_t target_type, bool verbose)
 
 
 static bool
-ame_find_library(dpu_type_t target_type, bool verbose)
+membo_find_library(dpu_type_t target_type, bool verbose)
 {
     static const char _empty_path[] = "/";
     char string[STRING_MAX_SIZE];
@@ -529,23 +529,23 @@ ame_find_library(dpu_type_t target_type, bool verbose)
         // Useful to perform tests during maven compilation.
         // Try to use library without version in UPMEM_RUNTIME_LIBRARY_PATH directory.
         BUILD_LIB_NAME_WITHOUT_SHARED_LIB_PATH_SUFFIX_IN(string, path, target_type);
-        if (ame_find_library_from_string(target_type, string, false) == true)
+        if (membo_find_library_from_string(target_type, string, false) == true)
             return true;
         // Use library with version in UPMEM_RUNTIME_LIBRARY_PATH directory.
         BUILD_LIB_NAME_WITH_VERSION_WITHOUT_SHARED_LIB_PATH_SUFFIX_IN(string, path, target_type);
-        return ame_find_library_from_string(target_type, string, verbose);
+        return membo_find_library_from_string(target_type, string, verbose);
     } else {
         if ((path = fetch_package_library_directory()) == NULL) {
             path = (char *)_empty_path;
         }
         BUILD_LIB_NAME_IN(string, path, target_type);
-        if (ame_find_library_from_string(target_type, string, false)) {
+        if (membo_find_library_from_string(target_type, string, false)) {
             free(path);
             return true;
         }
         BUILD_LIB_NAME_IN(string, path, target_type);
         free(path);
-        return ame_find_library_from_string(target_type, string, verbose);
+        return membo_find_library_from_string(target_type, string, verbose);
     }
 }
 
@@ -568,13 +568,13 @@ find_library_symbol(dpu_type_t target_type, const char *symbol_name, void **symb
 }
 
 static bool
-ame_find_library_symbol(dpu_type_t target_type, const char *symbol_name, void **symbol_handle, bool verbose)
+membo_find_library_symbol(dpu_type_t target_type, const char *symbol_name, void **symbol_handle, bool verbose)
 {
     char string[STRING_MAX_SIZE];
     char *dl_error;
 
     BUILD_SYMBOL_NAME_IN(string, target_type, symbol_name);
-    *symbol_handle = dlsym(ame_handler_context[target_type].library, string);
+    *symbol_handle = dlsym(membo_handler_context[target_type].library, string);
     if ((dl_error = dlerror()) != NULL) {
         if (verbose) {
             fprintf(stderr, "cannot find symbol %s: %s\n", string, dl_error);
@@ -604,11 +604,11 @@ find_library_from_string(dpu_type_t target_type, const char *lib_path, bool verb
 }
 
 static bool
-ame_find_library_from_string(dpu_type_t target_type, const char *lib_path, bool verbose)
+membo_find_library_from_string(dpu_type_t target_type, const char *lib_path, bool verbose)
 {
     char *dl_error;
     dlerror();
-    if ((ame_handler_context[target_type].library = dlopen(lib_path, RTLD_LAZY)) == NULL) {
+    if ((membo_handler_context[target_type].library = dlopen(lib_path, RTLD_LAZY)) == NULL) {
         if (verbose) {
             fprintf(stderr, "cannot open library %s", lib_path);
             if ((dl_error = dlerror()) != NULL) {

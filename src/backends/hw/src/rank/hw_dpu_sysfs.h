@@ -29,16 +29,16 @@ uint8_t
 dpu_sysfs_get_nb_physical_ranks();
 
 int
-dpu_sysfs_ame_alloc_ranks_direct(int nr_req_ranks);
+dpu_sysfs_membo_alloc_ranks_direct(int nr_req_ranks);
 
 int
-dpu_sysfs_ame_alloc_ranks_async(int nr_req_ranks);
+dpu_sysfs_membo_alloc_ranks_async(int nr_req_ranks);
 
 int
-dpu_sysfs_ame_get_usage(void);
+dpu_sysfs_membo_get_usage(void);
 
 int
-dpu_sysfs_ame_set_threshold(int threshold);
+dpu_sysfs_membo_set_threshold(int threshold);
 
 int
 dpu_sysfs_get_available_rank(const char *rank_path, struct dpu_rank_fs *rank_fs);

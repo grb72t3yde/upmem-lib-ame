@@ -270,7 +270,7 @@ dpu_load(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t
 }
 
 __API_SYMBOL__ dpu_error_t
-dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out)
+dpu_membo_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out)
 {
     return dpu_load_generic(dpu_set, binary_path, NULL, 0, program_in, program_out, program, __dpu_load_elf_program);
 }

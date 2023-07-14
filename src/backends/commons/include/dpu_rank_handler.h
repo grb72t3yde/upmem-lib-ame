@@ -50,12 +50,12 @@ typedef struct dpu_rank_handler {
     dpu_rank_status_e (*get_nr_dpu_ranks)(uint32_t *nr_ranks);
 } * dpu_rank_handler_t;
 
-typedef struct dpu_ame_handler {
+typedef struct dpu_membo_handler {
     int (*alloc_ranks_direct)(int nr_req_ranks);
     int (*alloc_ranks_async)(int nr_req_ranks);
     int (*get_usage)(void);
     int (*set_threshold)(int threshold);
-} * dpu_ame_handler_t;
+} * dpu_membo_handler_t;
 
 #define RANK_FEATURE(rank, feature) ((rank)->handler_context->handler->features.feature)
 
@@ -66,20 +66,20 @@ typedef struct _dpu_rank_handler_context_t {
     void *library;
 } * dpu_rank_handler_context_t;
 
-typedef struct _dpu_ame_handler_context_t {
-    dpu_ame_handler_t handler;
+typedef struct _dpu_membo_handler_context_t {
+    dpu_membo_handler_t handler;
     int handler_refcount;
     void *library;
-} * dpu_ame_handler_context_t;
+} * dpu_membo_handler_context_t;
 
 bool
 dpu_rank_handler_instantiate(dpu_type_t type, dpu_rank_handler_context_t *ret_handler_context, bool verbose);
 bool
-dpu_ame_handler_instantiate(dpu_type_t type, dpu_ame_handler_context_t *ret_handler_context, bool verbose);
+dpu_membo_handler_instantiate(dpu_type_t type, dpu_membo_handler_context_t *ret_handler_context, bool verbose);
 void
 dpu_rank_handler_release(dpu_rank_handler_context_t handler_context);
 void
-dpu_ame_handler_release(dpu_ame_handler_context_t handler_context);
+dpu_membo_handler_release(dpu_membo_handler_context_t handler_context);
 
 bool
 dpu_rank_handler_get_rank(struct dpu_rank_t *rank, dpu_rank_handler_context_t handler_context, dpu_properties_t properties);

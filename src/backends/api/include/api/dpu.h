@@ -146,7 +146,7 @@ dpu_error_t
 dpu_alloc(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
 
 dpu_error_t
-dpu_alloc_direct_reclaim(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
+dpu_alloc_membo(uint32_t nr_dpus, const char *profile, struct dpu_set_t *dpu_set);
 
 /**
  * @brief Allocate the specified number of DPU ranks.
@@ -163,7 +163,7 @@ dpu_error_t
 dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set);
 
 /**
- * @brief Allocate the specified number of DPU ranks. Used by AME users. It may perform a direct reclamation.
+ * @brief Allocate the specified number of DPU ranks. Used by MemBo users. It may perform a direct reclamation.
  *
  * Fails if the given number of DPU ranks cannot be allocated (unless `DPU_ALLOCATE_ALL` is used).
  *
@@ -174,10 +174,10 @@ dpu_alloc_ranks(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_se
  * @return Whether the operation was successful.
  */
 dpu_error_t
-dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set);
+dpu_alloc_ranks_membo(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set);
 
 /**
- * @brief Allocate the specified number of DPU ranks. Used by AME users. It returns immediately if there is any free ranks; 
+ * @brief Allocate the specified number of DPU ranks. Used by MemBo users. It returns immediately if there is any free ranks; 
  * otherwise, it performs a direct reclaimation to reclaim a rank.
  *
  * Fails if the given number of DPU ranks cannot be allocated (unless `DPU_ALLOCATE_ALL` is used).
@@ -190,13 +190,13 @@ dpu_alloc_ranks_direct_reclaim(uint32_t nr_ranks, const char *profile, struct dp
  * @return Whether the operation was successful.
  */
 dpu_error_t
-dpu_alloc_ranks_async(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args);
+dpu_alloc_ranks_membo_dmp(uint32_t nr_ranks, const char *profile, struct dpu_set_t *dpu_set, rank_reclamation_callback_fn callback_fn, void *cb_args);
 
 dpu_error_t
-dpu_ame_get_usage(uint32_t *usage);
+dpu_membo_get_usage(uint32_t *usage);
 
 dpu_error_t
-dpu_ame_set_threshold(uint32_t threshold);
+dpu_membo_set_threshold(uint32_t threshold);
 
 /**
  * @brief Free all the DPUs of a DPU set.
@@ -401,7 +401,7 @@ dpu_load(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t
  * @return Whether the operation was successful.
  */
 dpu_error_t
-dpu_ame_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out);
+dpu_membo_load_with_program(struct dpu_set_t dpu_set, const char *binary_path, struct dpu_program_t **program, struct dpu_program_t *program_in, struct dpu_program_t **program_out);
 
 /**
  * @brief Get the requested symbol information.

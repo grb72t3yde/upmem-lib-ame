@@ -1603,27 +1603,27 @@ if _libs["libdpu.so"].has("dpu_alloc_ranks_async", "cdecl"):
     dpu_alloc_ranks_async.argtypes = [c_uint32, String, POINTER(struct_dpu_set_t), rank_reclamation_callback_fn]
     dpu_alloc_ranks_async.restype = dpu_error_t
 
-if _libs["libdpu.so"].has("dpu_ame_get_usage", "cdecl"):
-    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_ame_get_usage", "cdecl")
+if _libs["libdpu.so"].has("dpu_membo_get_usage", "cdecl"):
+    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_membo_get_usage", "cdecl")
     dpu_alloc_ranks_async.argtypes = [POINTER(c_uint32)]
     dpu_alloc_ranks_async.restype = dpu_error_t
 
-if _libs["libdpu.so"].has("dpu_ame_set_threshold", "cdecl"):
-    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_ame_set_threshold", "cdecl")
+if _libs["libdpu.so"].has("dpu_membo_set_threshold", "cdecl"):
+    dpu_alloc_ranks_async = _libs["libdpu.so"].get("dpu_membo_set_threshold", "cdecl")
     dpu_alloc_ranks_async.argtypes = [c_uint32]
     dpu_alloc_ranks_async.restype = dpu_error_t
 
 # dpu.h: 197
-if _libs["libdpu.so"].has("dpu_ame_dpu_sets_sync_xfer", "cdecl"):
-    dpu_ame_dpu_sets_sync_xfer = _libs["libdpu.so"].get("dpu_ame_dpu_sets_sync_xfer", "cdecl")
-    dpu_ame_dpu_sets_sync_xfer.argtypes = [POINTER(struct_dpu_set_t), c_uint32]
-    dpu_ame_dpu_sets_sync_xfer.restype = dpu_error_t
+if _libs["libdpu.so"].has("dpu_membo_dpu_sets_sync_xfer", "cdecl"):
+    dpu_membo_dpu_sets_sync_xfer = _libs["libdpu.so"].get("dpu_membo_dpu_sets_sync_xfer", "cdecl")
+    dpu_membo_dpu_sets_sync_xfer.argtypes = [POINTER(struct_dpu_set_t), c_uint32]
+    dpu_membo_dpu_sets_sync_xfer.restype = dpu_error_t
 
 # dpu.h: 206
-if _libs["libdpu.so"].has("dpu_ame_union_dpu_sets", "cdecl"):
-    dpu_ame_union_dpu_sets = _libs["libdpu.so"].get("dpu_ame_union_dpu_sets", "cdecl")
-    dpu_ame_union_dpu_sets.argtypes = [POINTER(struct_dpu_set_t), c_uint32]
-    dpu_ame_union_dpu_sets.restype = dpu_error_t
+if _libs["libdpu.so"].has("dpu_membo_union_dpu_sets", "cdecl"):
+    dpu_membo_union_dpu_sets = _libs["libdpu.so"].get("dpu_membo_union_dpu_sets", "cdecl")
+    dpu_membo_union_dpu_sets.argtypes = [POINTER(struct_dpu_set_t), c_uint32]
+    dpu_membo_union_dpu_sets.restype = dpu_error_t
 
 # dpu.h: 169
 if _libs["libdpu.so"].has("dpu_free", "cdecl"):
@@ -1743,7 +1743,7 @@ if _libs["libdpu.so"].has("dpu_load", "cdecl"):
             POINTER(struct_dpu_program_t))]
     dpu_load.restype = dpu_error_t
 
-if _libs["libdpu.so"].has("dpu_ame_load_with_program", "cdecl"):
+if _libs["libdpu.so"].has("dpu_membo_load_with_program", "cdecl"):
     dpu_load = _libs["libdpu.so"].get("dpu_load", "cdecl")
     dpu_load.argtypes = [
         struct_dpu_set_t, String, POINTER(
