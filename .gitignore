@@ -48,5 +48,8 @@
 .tmp_versions/
 modules.order
 Module.symvers
-Mkfile.old
 dkms.conf
+Mkfile.old
+
+# CMake directory
+upmem-2021.3.0-Linux-x86_64/src/backends/build/
